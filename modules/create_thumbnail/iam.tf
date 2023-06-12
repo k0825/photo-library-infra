@@ -7,11 +7,11 @@ resource "aws_iam_role" "lambda_role" {
 
 resource "aws_iam_policy" "lambda_policy" {
   name = "create-thumbnail-policy"
-  policy = templatefile("${path.module}/policies/lambda_policy.json",
+  policy = templatefile("${path.module}/policies/lambda_policy.json.tpl",
     {
       table_name  = var.mapping_table_name,
       bucket_name = var.photo_library_name,
-      accound_id  = data.aws_caller_identity.current.account_id
+      account_id  = data.aws_caller_identity.current.account_id
   })
 }
 

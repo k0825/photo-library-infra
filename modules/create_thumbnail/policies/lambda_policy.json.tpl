@@ -16,8 +16,8 @@
         "s3:*"
       ],
       "Resource" : [
-        "arn:aws:s3:::${var.bucket_name}/*",
-        "arn:aws:s3:::${var.bucket_name}"
+        "arn:aws:s3:::${bucket_name}/*",
+        "arn:aws:s3:::${bucket_name}"
       ]
     },
     {
@@ -26,7 +26,7 @@
         "dynamodb:putItem"
       ],
       "Resource" : [
-        "arn:aws:dynamodb:ap-northeast-1:${var.account_id}:table/${var.table_name}"
+        "arn:aws:dynamodb:ap-northeast-1:${account_id}:table/${table_name}"
       ]
     }
   ]
