@@ -32,24 +32,17 @@ resource "null_resource" "layer" {
 
   provisioner "local-exec" {
     command = <<EOF
-      rm -rf ${path.module}/lambda/build/layer
-      mkdir -p ${path.module}/lambda/build/layer
-      pip install -r ${path.module}/lambda/src/requirements.txt -t ${path.module}/lambda/build/layer
+      rm -rf ${path.module}/lambda/build/python
+      mkdir -p ${path.module}/lambda/build/python
+      pip install -r ${path.module}/lambda/src/requirements.txt -t ${path.module}/lambda/build/python
+      zip -r ../layer.zip ${path.module}/lambda/build/python
     EOF
   }
 }
 
-data "archive_file" "layer" {
-  type        = "zip"
-  source_dir  = "${path.module}/lambda/build/layer"
-  output_path = "${path.module}/lambda/build/layer.zip"
-
-  depends_on = [null_resource.layer]
-}
-
 resource "aws_lambda_layer_version" "layer" {
   layer_name          = "create_thumbnail_layer"
-  filename            = data.archive_file.layer.output_path
-  source_code_hash    = data.archive_file.layer.output_base64sha256
+  filename            = "${path.module}/lambda/build/layer.zip"
   compatible_runtimes = ["python3.10"]
+  depends_on          = [null_resource.layer]
 }
