@@ -52,7 +52,7 @@ def lambda_handler(event, context):
 
         # DynamoDBに登録
         try:
-            table_name = os.environ["DYNAMODB_TABLE"]
+            table_name = os.environ["MAPPING_TABLE_NAME"]
             item = {
                 "id": {"S": uid},
                 "original_path": {"S": original_path},

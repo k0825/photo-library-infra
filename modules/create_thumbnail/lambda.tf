@@ -1,10 +1,22 @@
 resource "aws_lambda_function" "create_thumbnail" {
-  filename         = "./build/lambda_function_payload.zip"
+  filename         = "${path.module}/lambda/build/lambda_function_payload.zip"
   function_name    = "create_thumbnail"
   role             = aws_iam_role.lambda_role.arn
-  handler          = "lambda_handler"
+  handler          = "handler.lambda_handler"
   source_code_hash = data.archive_file.create_thumbnail.output_base64sha256
   runtime          = "python3.10"
+  layers           = [aws_lambda_layer_version.layer.arn]
+
+  environment {
+    variables = {
+      MAPPING_TABLE_NAME = var.mapping_table_name
+    }
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.lambda_log_group,
+    aws_iam_role_policy_attachment.lambda_role_policy_attachment
+  ]
 }
 
 data "archive_file" "create_thumbnail" {
@@ -29,8 +41,10 @@ resource "null_resource" "layer" {
 
 data "archive_file" "layer" {
   type        = "zip"
-  source_file = "${path.module}/lambda/build/layer"
+  source_dir  = "${path.module}/lambda/build/layer"
   output_path = "${path.module}/lambda/build/layer.zip"
+
+  depends_on = [null_resource.layer]
 }
 
 resource "aws_lambda_layer_version" "layer" {

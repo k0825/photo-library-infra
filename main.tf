@@ -1,4 +1,18 @@
-module "image_source" {
-  source            = "./modules/image_source"
-  image_source_name = var.image_source_name
+module "datastore" {
+  source = "./modules/datastore"
+
+  photo_library_name = var.photo_library_name
+}
+
+module "create_thumbnail" {
+  source = "./modules/create_thumbnail"
+
+  mapping_table_name = module.datastore.mapping_table_name
+}
+
+module "storage" {
+  source = "./modules/storage"
+
+  photo_library_name            = var.photo_library_name
+  create_thumbnail_function_arn = module.create_thumbnail.create_thumbnail_function_arn
 }
