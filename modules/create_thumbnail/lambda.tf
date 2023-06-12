@@ -7,6 +7,7 @@ resource "aws_lambda_function" "create_thumbnail" {
   runtime          = "python3.10"
   layers           = [aws_lambda_layer_version.layer.arn]
   timeout          = 900
+  memory_size      = 10240
 
   environment {
     variables = {
