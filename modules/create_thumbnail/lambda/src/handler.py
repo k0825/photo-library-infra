@@ -39,6 +39,7 @@ def lambda_handler(event, context):
         except Exception as e:
             logger.error("オリジナル画像の取得に失敗しました")
             logger.error(e)
+            return
 
         uid = hashlib.sha256(original_path.encode()).hexdigest()
         thumbnail_path = os.path.join(tambnail_dir, uid)
@@ -49,6 +50,8 @@ def lambda_handler(event, context):
         except Exception as e:
             logger.error("サムネイル画像の作成に失敗しました")
             logger.error(e)
+            return
+
 
         # DynamoDBに登録
         try:
@@ -62,3 +65,4 @@ def lambda_handler(event, context):
         except:
             logger.error("DynamoDBへの登録に失敗しました")
             logger.error(e)
+            return
