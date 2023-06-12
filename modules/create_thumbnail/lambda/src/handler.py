@@ -18,16 +18,23 @@ def get_original_image(bucket, original_path):
 
 
 # サムネを作ってS3にアップロード
-def create_thumbnail(image, bucket, thumbnail_path):
-    tmp_path = os.path.join("/tmp/", thumbnail_path)
+def create_thumbnail(image, bucket, uid):
+    thumbnail_dir = "thumbnail/"
+
+    # サムネイル用のディレクトリがなければ作成
+    is_dir_exists = s3.list_objects(Bucket=bucket, Prefix=thumbnail_dir)
+    if not "Contents" in is_dir_exists:
+        s3.put_object(Bucket=bucket, Key=thumbnail_dir)
+
+
+    tmp_path = os.path.join("/tmp/", uid)
+    thumbnail_path = os.path.join(thumbnail_dir, uid)
     image.save(tmp_path, "JPEG", quality=50, optimize=True)
     s3.upload_file(tmp_path, bucket, thumbnail_path)
     os.remove(tmp_path)
 
 
 def lambda_handler(event, context):
-    thumbnail_dir = "thumbnail/"
-
     logger.info(f"{len(event)}個のイベントを受け取りました")
 
     # S3のイベントからバケット名とオリジナル画像のパスを取得
@@ -45,15 +52,11 @@ def lambda_handler(event, context):
             logger.error(e)
             return
 
-        uid = hashlib.sha256(original_path.encode()).hexdigest()
-        thumbnail_path = os.path.join(thumbnail_dir, uid)
 
         # サムネイル画像を作成
         try:
-            is_dir_exists = s3.list_objects(Bucket=bucket, Prefix=thumbnail_path)
-            if not "Contents" in is_dir_exists:
-                s3.put_object(Bucket=bucket, Key=thumbnail_dir)
-            create_thumbnail(image, bucket, thumbnail_path)
+            uid = hashlib.sha256(original_path.encode()).hexdigest()
+            create_thumbnail(image, bucket, uid)
         except Exception as e:
             logger.error("サムネイル画像の作成に失敗しました")
             logger.error(e)
