@@ -26,7 +26,7 @@ def create_thumbnail(image, bucket, thumbnail_path):
 
 
 def lambda_handler(event, context):
-    thumbnail_dir = "/thumbnail/"
+    thumbnail_dir = "thumbnail/"
 
     # S3のイベントからバケット名とオリジナル画像のパスを取得
     for record in event["Records"]:
