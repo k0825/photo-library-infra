@@ -33,6 +33,8 @@ def create_thumbnail(image, bucket, uid):
     s3.upload_file(tmp_path, bucket, thumbnail_path)
     os.remove(tmp_path)
 
+    return thumbnail_path
+
 
 def lambda_handler(event, context):
     logger.info(f"{len(event)}個のイベントを受け取りました")
@@ -56,7 +58,7 @@ def lambda_handler(event, context):
         # サムネイル画像を作成
         try:
             uid = hashlib.sha256(original_path.encode()).hexdigest()
-            create_thumbnail(image, bucket, uid)
+            thumbnail_path = create_thumbnail(image, bucket, uid)
         except Exception as e:
             logger.error("サムネイル画像の作成に失敗しました")
             logger.error(e)
