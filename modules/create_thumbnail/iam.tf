@@ -1,11 +1,18 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "lambda_role" {
   name               = "create-thumbnail-role"
   assume_role_policy = file("${path.module}/policies/lambda_assume_role.json")
 }
 
 resource "aws_iam_policy" "lambda_policy" {
-  name   = "create-thumbnail-policy"
-  policy = file("${path.module}/policies/lambda_policy.json")
+  name = "create-thumbnail-policy"
+  policy = templatefile("${path.module}/policies/lambda_policy.json",
+    {
+      table_name  = var.mapping_table_name,
+      bucket_name = var.photo_library_name,
+      accound_id  = data.aws_caller_identity.current.account_id
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_role_policy_attachment" {

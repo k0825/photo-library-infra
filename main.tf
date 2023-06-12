@@ -8,6 +8,7 @@ module "create_thumbnail" {
   source = "./modules/create_thumbnail"
 
   mapping_table_name = module.datastore.mapping_table_name
+  photo_library_name = var.photo_library_name
 }
 
 module "storage" {
