@@ -6,6 +6,7 @@ resource "aws_lambda_function" "create_thumbnail" {
   source_code_hash = data.archive_file.create_thumbnail.output_base64sha256
   runtime          = "python3.10"
   layers           = [aws_lambda_layer_version.layer.arn]
+  timeout          = 900
 
   environment {
     variables = {
