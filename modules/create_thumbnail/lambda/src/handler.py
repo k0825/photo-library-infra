@@ -54,7 +54,7 @@ def move_to_other_object(bucket, original_path):
     s3.copy_object(
         Bucket=bucket,
         CopySource={"Bucket": bucket, "Key": original_path},
-        Key=os.path.join(other_dir, other_path),
+        Key=other_path,
     )
     s3.delete_object(Bucket=bucket, Key=original_path)
 
