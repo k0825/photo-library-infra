@@ -6,3 +6,11 @@ resource "aws_sqs_queue" "queue" {
   receive_wait_time_seconds  = 0
   max_message_size           = 262144
 }
+
+resource "aws_sqs_queue_policy" "queue_policy" {
+  queue_url = aws_sqs_queue.queue.id
+  policy = templatefile("${path.module}/sqs_policy.json", {
+    sqs_queue_name = aws_sqs_queue.queue.name
+    bucket_name    = var.photo_library_name
+  })
+}

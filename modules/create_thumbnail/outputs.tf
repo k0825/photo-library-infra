@@ -1,3 +1,3 @@
-output "create_thumbnail_function_arn" {
-  value = aws_lambda_function.create_thumbnail.arn
+output "create_thumbnail_queue_arn" {
+  value = aws_sqs_queue.queue.arn
 }

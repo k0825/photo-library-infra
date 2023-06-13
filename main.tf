@@ -14,6 +14,6 @@ module "create_thumbnail" {
 module "storage" {
   source = "./modules/storage"
 
-  photo_library_name            = var.photo_library_name
-  create_thumbnail_function_arn = module.create_thumbnail.create_thumbnail_function_arn
+  photo_library_name         = var.photo_library_name
+  create_thumbnail_queue_arn = module.create_thumbnail.create_thumbnail_queue_arn
 }
