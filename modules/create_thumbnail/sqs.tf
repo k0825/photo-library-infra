@@ -9,7 +9,8 @@ resource "aws_sqs_queue" "queue" {
 
 resource "aws_sqs_queue_policy" "queue_policy" {
   queue_url = aws_sqs_queue.queue.id
-  policy = templatefile("${path.module}/sqs_policy.json", {
+  policy = templatefile("${path.module}/policies/sqs_policy.json", {
+    account_id     = local.account_id
     sqs_queue_name = aws_sqs_queue.queue.name
     bucket_name    = var.photo_library_name
   })

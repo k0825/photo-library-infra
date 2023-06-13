@@ -1,5 +1,3 @@
-data "aws_caller_identity" "current" {}
-
 resource "aws_iam_role" "lambda_role" {
   name               = "create-thumbnail-role"
   assume_role_policy = file("${path.module}/policies/lambda_assume_role.json")
@@ -11,7 +9,7 @@ resource "aws_iam_policy" "lambda_policy" {
     {
       table_name  = var.mapping_table_name,
       bucket_name = var.photo_library_name,
-      account_id  = data.aws_caller_identity.current.account_id
+      account_id  = local.account_id
   })
 }
 
