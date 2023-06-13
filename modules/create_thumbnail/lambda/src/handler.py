@@ -4,6 +4,7 @@ import boto3
 import os
 import logging
 import re
+import json
 
 
 logger = logging.getLogger()
@@ -63,9 +64,11 @@ def lambda_handler(event, context):
     logger.info(f"{len(event)}個のイベントを受け取りました")
 
     pattern = ".\.(jpg|jpeg|png|heic|gif)$"
+    
+    sqs_body = json.loads(event['body'])
 
     # S3のイベントからバケット名とオリジナル画像のパスを取得
-    for record in event["Records"]:
+    for record in sqs_body["Records"]:
         bucket = record["s3"]["bucket"]["name"]
         original_path = record["s3"]["object"]["key"]
 
