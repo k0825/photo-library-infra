@@ -3,6 +3,7 @@ import hashlib
 import boto3
 import os
 import logging
+import re
 
 
 logger = logging.getLogger()
@@ -36,8 +37,28 @@ def create_thumbnail(image, bucket, uid):
     return thumbnail_path
 
 
+# 合致しないファイルを別ディレクトリに移動
+def move_to_other_object(bucket, original_path):
+    other_dir = "other/"
+
+    # other用のディレクトリがなければ作成
+    is_dir_exists = s3.list_objects(Bucket=bucket, Prefix=other_dir)
+    if not "Contents" in is_dir_exists:
+        s3.put_object(Bucket=bucket, Key=other_dir)
+
+    # ファイルを移動
+    s3.copy_object(
+        Bucket=bucket,
+        CopySource={"Bucket": bucket, "Key": original_path},
+        Key=os.path.join(other_dir, original_path),
+    )
+    s3.delete_object(Bucket=bucket, Key=original_path)
+
+
 def lambda_handler(event, context):
     logger.info(f"{len(event)}個のイベントを受け取りました")
+
+    pattern = ".\.(jpg|jpeg|png|heic|gif)$"
 
     # S3のイベントからバケット名とオリジナル画像のパスを取得
     for record in event["Records"]:
@@ -45,6 +66,17 @@ def lambda_handler(event, context):
         original_path = record["s3"]["object"]["key"]
 
         logger.info(f"ファイルパス: {bucket}")
+
+        if not re.search(pattern, original_path, re.IGNORECASE):
+            try:
+                move_to_other_object(bucket, original_path)
+            except:
+                logger.error("ファイルの移動に失敗しました")
+                logger.error(e)
+                return
+
+            logger.info("この拡張子は対象外のため、ファイルを移動しました")
+            continue
 
         # オリジナル画像を取得
         try:
