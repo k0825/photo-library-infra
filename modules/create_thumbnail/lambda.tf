@@ -48,8 +48,6 @@ data "archive_file" "layer" {
   type        = "zip"
   source_dir  = "${path.module}/lambda/build/layer"
   output_path = "${path.module}/lambda/build/layer.zip"
-
-  depends_on = [null_resource.layer]
 }
 
 resource "aws_lambda_layer_version" "layer" {
