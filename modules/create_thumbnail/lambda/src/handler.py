@@ -69,7 +69,7 @@ def lambda_handler(event, context):
         bucket = record["s3"]["bucket"]["name"]
         original_path = record["s3"]["object"]["key"]
 
-        logger.info(f"ファイルパス: {bucket}")
+        logger.info(f"ファイルパス: {original_path}")
 
         if not re.search(pattern, original_path, re.IGNORECASE):
             try:

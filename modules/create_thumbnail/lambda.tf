@@ -58,3 +58,10 @@ resource "aws_lambda_layer_version" "layer" {
   source_code_hash    = data.archive_file.layer.output_base64sha256
   compatible_runtimes = ["python3.10"]
 }
+
+resource "aws_lambda_event_source_mapping" "sqs" {
+  function_name                      = aws_lambda_function.create_thumbnail.arn
+  event_source_arn                   = aws_sqs_queue.queue.arn
+  batch_size                         = 10
+  maximum_batching_window_in_seconds = 5
+}
