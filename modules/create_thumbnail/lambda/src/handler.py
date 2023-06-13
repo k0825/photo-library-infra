@@ -40,6 +40,8 @@ def create_thumbnail(image, bucket, uid):
 # 合致しないファイルを別ディレクトリに移動
 def move_to_other_object(bucket, original_path):
     other_dir = "other/"
+    filename = os.path.basename(original_path)
+    other_path = os.path.join(other_dir, filename)
 
     # other用のディレクトリがなければ作成
     is_dir_exists = s3.list_objects(Bucket=bucket, Prefix=other_dir)
@@ -50,7 +52,7 @@ def move_to_other_object(bucket, original_path):
     s3.copy_object(
         Bucket=bucket,
         CopySource={"Bucket": bucket, "Key": original_path},
-        Key=os.path.join(other_dir, original_path),
+        Key=os.path.join(other_dir, other_path),
     )
     s3.delete_object(Bucket=bucket, Key=original_path)
 
