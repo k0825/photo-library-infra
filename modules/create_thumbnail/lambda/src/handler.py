@@ -7,6 +7,8 @@ import re
 
 
 logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 s3 = boto3.client("s3")
 dynamodb = boto3.client("dynamodb")
 
