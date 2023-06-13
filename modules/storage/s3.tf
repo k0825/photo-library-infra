@@ -18,14 +18,3 @@ resource "aws_s3_bucket_ownership_controls" "photo_library" {
     object_ownership = "BucketOwnerEnforced"
   }
 }
-
-
-resource "aws_s3_bucket_notification" "notifier" {
-  bucket = aws_s3_bucket.photo_library.id
-
-  lambda_function {
-    lambda_function_arn = var.create_thumbnail_function_arn
-    events              = ["s3:ObjectCreated:*"]
-    filter_prefix       = "original/"
-  }
-}
