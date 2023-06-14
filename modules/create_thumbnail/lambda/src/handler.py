@@ -76,8 +76,8 @@ def lambda_handler(event, context):
             if not re.search(pattern, original_path, re.IGNORECASE):
                 try:
                     move_to_other_object(bucket, original_path)
-                except:
-                    logger.error("ファイルの移動に失敗しました")
+                except Exception as e:
+                    logger.error(f"ファイルの移動に失敗しました")
                     logger.error(e)
                     return
 
@@ -112,7 +112,7 @@ def lambda_handler(event, context):
                     "thumbnail_path": {"S": thumbnail_path},
                 }
                 dynamodb.put_item(TableName=table_name, Item=item)
-            except:
+            except Exception as e:
                 logger.error("DynamoDBへの登録に失敗しました")
                 logger.error(e)
                 return
