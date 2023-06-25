@@ -20,6 +20,10 @@ def get_original_image(bucket, original_path):
     image = Image.open(response["Body"])
     return image
 
+def convert_png_to_jpeg(image):
+    if image.mode == "PNG":
+        image = image.convert("RGB")
+    return image
 
 # サムネを作ってS3にアップロード
 def create_thumbnail(image, bucket, uid):
@@ -61,7 +65,7 @@ def move_to_other_object(bucket, original_path):
 
 
 def lambda_handler(event, context):
-    pattern = ".\.(jpg|jpeg|png|heic|gif)$"
+    pattern = ".\.(jpg|jpeg|png|gif)$"
     for sqs_record in event["Records"]:
         sqs_body = json.loads(sqs_record["body"])
 
@@ -71,35 +75,37 @@ def lambda_handler(event, context):
             bucket = record["s3"]["bucket"]["name"]
             original_path = record["s3"]["object"]["key"]
 
-            logger.info(f"ファイルパス: {original_path}")
+            logger.info(f"INFO-0001 ファイルパス: {original_path}")
 
             if not re.search(pattern, original_path, re.IGNORECASE):
                 try:
                     move_to_other_object(bucket, original_path)
                 except Exception as e:
-                    logger.error(f"ファイルの移動に失敗しました")
-                    logger.error(e)
+                    logger.error(f"ERROR-0001 ファイルの移動に失敗しました\n{e}")
                     return
 
-                logger.info("この拡張子は対象外のため、ファイルを移動しました")
+                logger.info("INFO-0002 この拡張子は対象外のため、ファイルを移動しました")
                 continue
 
             # オリジナル画像を取得
             try:
                 image = get_original_image(bucket, original_path)
             except Exception as e:
-                logger.error("オリジナル画像の取得に失敗しました")
-                logger.error(e)
+                logger.error(f"ERROR-0002 オリジナル画像の取得に失敗しました\n{e}")
                 return
 
+            try:
+                image = convert_png_to_jpeg(image)
+            except Exception as e:
+                logger.error(f"ERROR-0003 PNG画像の変換に失敗しました\n{e}")
+                return
 
             # サムネイル画像を作成
             try:
                 uid = hashlib.sha256(original_path.encode()).hexdigest()
                 thumbnail_path = create_thumbnail(image, bucket, uid)
             except Exception as e:
-                logger.error("サムネイル画像の作成に失敗しました")
-                logger.error(e)
+                logger.error(f"ERROR-0004 サムネイル画像の作成に失敗しました\n{e}")
                 return
 
 
@@ -113,6 +119,5 @@ def lambda_handler(event, context):
                 }
                 dynamodb.put_item(TableName=table_name, Item=item)
             except Exception as e:
-                logger.error("DynamoDBへの登録に失敗しました")
-                logger.error(e)
+                logger.error(f"ERROR-0005 DynamoDBへの登録に失敗しました\n{e}")
                 return
