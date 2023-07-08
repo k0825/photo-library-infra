@@ -6,8 +6,9 @@ import logging
 import re
 import json
 import urllib
+from pillow_heif import register_heif_opener
 
-
+register_heif_opener()
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
