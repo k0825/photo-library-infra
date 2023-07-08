@@ -67,7 +67,7 @@ def move_to_other_object(bucket, original_path):
 
 
 def lambda_handler(event, context):
-    pattern = ".\.(jpg|jpeg|png|gif)$"
+    pattern = ".\.(jpg|jpeg|png|gif|heic)$"
     for sqs_record in event["Records"]:
         sqs_body = json.loads(sqs_record["body"])
 
