@@ -5,6 +5,7 @@ import os
 import logging
 import re
 import json
+import urllib
 
 
 logger = logging.getLogger()
@@ -74,12 +75,13 @@ def lambda_handler(event, context):
             logger.info(f"{len(event)}個のS3イベントを受け取りました")
             bucket = record["s3"]["bucket"]["name"]
             original_path = record["s3"]["object"]["key"]
+            decode_original_path = urllib.parse.unquote_plus(original_path)
 
-            logger.info(f"INFO-0001 ファイルパス: {original_path}")
+            logger.info(f"INFO-0001 ファイルパス: {decode_original_path}")
 
-            if not re.search(pattern, original_path, re.IGNORECASE):
+            if not re.search(pattern, decode_original_path, re.IGNORECASE):
                 try:
-                    move_to_other_object(bucket, original_path)
+                    move_to_other_object(bucket, decode_original_path)
                 except Exception as e:
                     logger.error(f"ERROR-0001 ファイルの移動に失敗しました\n{e}")
                     return
@@ -89,7 +91,7 @@ def lambda_handler(event, context):
 
             # オリジナル画像を取得
             try:
-                image = get_original_image(bucket, original_path)
+                image = get_original_image(bucket, decode_original_path)
             except Exception as e:
                 logger.error(f"ERROR-0002 オリジナル画像の取得に失敗しました\n{e}")
                 return
@@ -102,7 +104,7 @@ def lambda_handler(event, context):
 
             # サムネイル画像を作成
             try:
-                uid = hashlib.sha256(original_path.encode()).hexdigest()
+                uid = hashlib.sha256(decode_original_path.encode()).hexdigest()
                 thumbnail_path = create_thumbnail(image, bucket, uid)
             except Exception as e:
                 logger.error(f"ERROR-0004 サムネイル画像の作成に失敗しました\n{e}")
@@ -114,7 +116,7 @@ def lambda_handler(event, context):
                 table_name = os.environ["MAPPING_TABLE_NAME"]
                 item = {
                     "id": {"S": uid},
-                    "original_path": {"S": original_path},
+                    "original_path": {"S": decode_original_path},
                     "thumbnail_path": {"S": thumbnail_path},
                 }
                 dynamodb.put_item(TableName=table_name, Item=item)
