@@ -15,4 +15,8 @@ module "storage" {
   source = "./modules/storage"
 
   photo_library_name = var.photo_library_name
+
+  providers = {
+    aws.us_east_1 = aws.us_east_1
+  }
 }

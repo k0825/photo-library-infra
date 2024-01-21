@@ -28,3 +28,11 @@ resource "aws_s3_bucket_ownership_controls" "photo_library" {
     object_ownership = "BucketOwnerEnforced"
   }
 }
+
+resource "aws_s3_bucket_policy" "allow_cloudfront" {
+  bucket = aws_s3_bucket.photo_library.bucket
+  policy = templatefile("${path.module}/policies/allow_cloudfront.tpl.json", {
+    bucket_arn     = aws_s3_bucket.photo_library.arn
+    cloudfront_arn = aws_cloudfront_distribution.distribution.arn
+  })
+}
