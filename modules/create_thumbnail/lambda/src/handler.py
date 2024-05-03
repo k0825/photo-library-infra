@@ -22,10 +22,12 @@ def get_original_image(bucket, original_path):
     image = Image.open(response["Body"])
     return image
 
+
 def convert_png_to_jpeg(image):
     if image.mode == "PNG":
         image = image.convert("RGB")
     return image
+
 
 # サムネを作ってS3にアップロード
 def create_thumbnail(image, bucket, uid):
@@ -35,7 +37,6 @@ def create_thumbnail(image, bucket, uid):
     is_dir_exists = s3.list_objects(Bucket=bucket, Prefix=thumbnail_dir)
     if not "Contents" in is_dir_exists:
         s3.put_object(Bucket=bucket, Key=thumbnail_dir)
-
 
     tmp_path = os.path.join("/tmp/", uid)
     thumbnail_path = os.path.join(thumbnail_dir, uid)
@@ -66,6 +67,12 @@ def move_to_other_object(bucket, original_path):
     s3.delete_object(Bucket=bucket, Key=original_path)
 
 
+# 画像サイズを特定する関数
+def get_image_size(image):
+    width, height = image.size
+    return width, height
+
+
 def lambda_handler(event, context):
     pattern = ".\.(jpg|jpeg|png|gif|heic)$"
     for sqs_record in event["Records"]:
@@ -87,7 +94,9 @@ def lambda_handler(event, context):
                     logger.error(f"ERROR-0001 ファイルの移動に失敗しました\n{e}")
                     return
 
-                logger.info("INFO-0002 この拡張子は対象外のため、ファイルを移動しました")
+                logger.info(
+                    "INFO-0002 この拡張子は対象外のため、ファイルを移動しました"
+                )
                 continue
 
             # オリジナル画像を取得
@@ -111,6 +120,11 @@ def lambda_handler(event, context):
                 logger.error(f"ERROR-0004 サムネイル画像の作成に失敗しました\n{e}")
                 return
 
+            try:
+                width, height = get_image_size(image)
+            except Exception as e:
+                logger.error(f"ERROR-0005 画像サイズの取得に失敗しました\n{e}")
+                return
 
             # DynamoDBに登録
             try:
@@ -119,6 +133,8 @@ def lambda_handler(event, context):
                     "id": {"S": uid},
                     "original_path": {"S": decode_original_path},
                     "thumbnail_path": {"S": thumbnail_path},
+                    "width": {"N": str(width)},
+                    "height": {"N": str(height)},
                 }
                 dynamodb.put_item(TableName=table_name, Item=item)
             except Exception as e:
